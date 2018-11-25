@@ -19,5 +19,10 @@ achieves(on(X,Z),move(X,Y/on(X,Y),Z)).
 achieves(clear(Y),move(X/on(X,Y),Y,Z)). 
 
 requires(move(X,Y/on(X,Y),Z),[clear(X),clear(Z)],[on(X,Y)]).
-requires(move(X/on(X,Y),Y,Z),[clear(X/on(X,Y))],[clear(Z),diff(Z,X/on(X,Y))]).
+requires(move(X/on(X,Y),Y,Z),[clear(X/on(X,Y))],[clear(Z)]).
+%requires(move(X/on(X,Y),Y,Z),[clear(X/on(X,Y))],[clear(Z),diff(Z,X/on(X,Y))]).
+
+inst_action(move(X/on(X,Y),Y,Z),Cond,State,move(X,Y,Z)) :- goals_achieved(Cond,State).
+inst_action(move(X,Y/on(X,Y),Z),Cond,State,move(X,Y,Z)) :- goals_achieved(Cond,State).
+
 
