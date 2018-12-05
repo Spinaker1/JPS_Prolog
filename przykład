@@ -1,0 +1,9 @@
+b1
+b2      b2b1    
+p1p2p3  p1p2p3  p1p2p3
+
+InitState=[on(b2,p1),on(b1,b2),clear(b1),clear(p2),clear(p3)],Goals=[clear(p1)],choose_goal(Goal1, Goals, RestGoals1, InitState),achieves(Goal1, Action1),requires(Action1, CondGoals1, Conditions1),
+choose_goal(Goal2, CondGoals1, RestGoals2, InitState),achieves(Goal2, Action2),requires(Action2, CondGoals2, Conditions2),goals_achieved(CondGoals2,InitState),
+inst_action(Action2, Conditions2, InitState, InstAction2),perform_action(InitState, InstAction2, State2).
+
+InitState=[on(b2,p1),on(b1,b2),clear(b1),clear(p2),clear(p3)],Goals=[clear(p1)],plan(InitState, Goals, Plan, FinalState).
