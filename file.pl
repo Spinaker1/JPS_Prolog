@@ -53,17 +53,20 @@ conc([X|Rest1],L2,[X|Rest2]) :- conc(Rest1,L2,Rest2).
 
 %wariant wywołania procedury plan dla użytkownika, w którym nie musi wyznaczyć celów spełnionych AchievedGoals, ponieważ robi to za niego program 
 %wyznaczamy cele, które są już spełnione w stanie początkowym (czyli jest przecięcie zbiorów InitState i Goals)
-plan(InitState, Goals, Plan, FinalState) :- intersect(InitState,Goals,AchievedGoals), plan(InitState, Goals, AchievedGoals, Plan, FinalState).
+plan(InitState, Goals, Limit, Plan, FinalState) :- intersect(InitState,Goals,AchievedGoals), plan(InitState, Goals, AchievedGoals, Limit, Plan, FinalState).
 
-plan(State, Goals, AchievedGoals, [], State) :- goals_achieved(Goals, State).
+plan(State, Goals, AchievedGoals, Limit, [], State) :- Limit > 0, write(Limit), goals_achieved(Goals, State).
 
-plan(InitState, Goals, AchievedGoals, Plan, FinalState) :-
+plan(InitState, Goals, AchievedGoals, Limit, Plan, FinalState) :-
+Limit > 0,
+LimitPre is Limit//2 ,
 choose_goal(Goal, Goals, RestGoals, InitState),
 achieves(Goal, Action),
 requires(Action, CondGoals, Conditions),
-plan(InitState, CondGoals, AchievedGoals, PrePlan, State1),
+plan(InitState, CondGoals, AchievedGoals, LimitPre, PrePlan, State1),
 inst_action(Action, Conditions, State1, InstAction),
 check_action(InstAction,AchievedGoals),
 perform_action(State1, InstAction, State2),
-plan(State2, RestGoals, [Goal|AchievedGoals], PostPlan, FinalState),
+LimitPost is Limit-LimitPre-1 ,
+plan(State2, RestGoals, [Goal|AchievedGoals], LimitPost, PostPlan, FinalState),
 conc(PrePlan, [InstAction | PostPlan], Plan).
