@@ -66,10 +66,10 @@ achieves(clear(Y),move(X/on(X,Y),Y,_)) :-
     my_trace(4,achieves,2,[]).
 
 requires(move(X,Y/on(X,Y),Z),[clear(X),clear(Z)],[on(X,Y)])  :-
-    my_trace(1,requires,,1,[]),
+    my_trace(1,requires,1,[]),
     my_trace(4,requires,1,[]).
 requires(move(X/on(X,Y),Y,Z),[clear(X/on(X,Y))],[diff(Z,X/on(X,Y)), clear(Z)]) :-
-    my_trace(1,requires,,1,[]),
+    my_trace(1,requires,1,[]),
     my_trace(4,requires,1,[]).
 
 inst_action(Action, Conditions, State1, InstAction) :-
@@ -111,7 +111,11 @@ plan(InitState, Goals, AchievedGoals, Limit, Plan, FinalState, Level) :-
     Limit > 0,
     LimitPre is Limit//2 ,
     choose_goal(Goal, Goals, RestGoals, InitState),
+
+    my_trace(2,achieves,1,['Goal'/Goal]),
     achieves(Goal, Action),
+    my_trace(3,achieves,1,['Action'/Action]),
+
     requires(Action, CondGoals, Conditions),
     plan(InitState, CondGoals, AchievedGoals, LimitPre, PrePlan, State1,NewLevel),
     inst_action(Action, Conditions, State1, InstAction),
