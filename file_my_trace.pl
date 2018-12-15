@@ -140,5 +140,9 @@ plan(InitState, Goals, AchievedGoals, Limit, Plan, FinalState, Level) :-
 
     LimitPost is Limit-LimitPre - 1 ,
     plan(State2, RestGoals, [Goal|AchievedGoals], LimitPost, PostPlan, FinalState, NewLevel),
+
+    my_trace_rec(2,plan,2,Level,conc),
     conc(PrePlan, [InstAction | PostPlan], Plan),
-    my_trace_rec(1,plan,2,Level,['Plan'/Plan]).
+    my_trace_rec(3,plan,2,Level,conc,['Plan'/Plan]),
+
+    my_trace_rec(4,plan,2,Level,['Plan'/Plan]).
