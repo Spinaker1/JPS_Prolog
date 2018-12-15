@@ -48,8 +48,8 @@ goals_achieved([X|Goals], State) :-
     \+member(X,Goals).
 
 %wybieramy element który należy listy celów, ale nie należy do stanu początkowego
-choose_goal(Goal, Goals, RestGoals,InitState) :- 
-	my_trace(1,choose_goal,1,['Goals'/Goals,'InitState'/InitState]),
+choose_goal(Goal, Goals, RestGoals,InitState) :-
+	my_trace(1,choose_goal,1,[]),
 	my_trace(2,choose_goal,1,select),
 	select(Goal,Goals,RestGoals), 
 	my_trace(3,choose_goal,1,select,['Goal'/Goal,'RestGoals'/RestGoals]),
@@ -106,26 +106,39 @@ plan(State, Goals, AchievedGoals, Limit, [], State, Level) :-
     my_trace_rec(4,plan,1,Level,['Plan'/[]]).
 
 plan(InitState, Goals, AchievedGoals, Limit, Plan, FinalState, Level) :-
-    my_trace_rec(1,plan,2,Level,['State'/State,'Goals'/Goals,'AchievedGoals'/AchievedGoals,'Limit'/Limit]),
+    my_trace_rec(1,plan,2,Level,['InitState'/InitState,'Goals'/Goals,'AchievedGoals'/AchievedGoals,'Limit'/Limit]),
 
     NewLevel is Level + 1 ,
     Limit > 0,
     LimitPre is Limit//2 ,
+
+    my_trace_rec(2,plan,2,Level,choose_goal),
     choose_goal(Goal, Goals, RestGoals, InitState),
+    my_trace_rec(3,plan,2,choose_goal,Level,['Goal'/Goal,'RestGoals'/RestGoals]),
 
-    my_trace(2,plan,1,achieves),
+    my_trace_rec(2,plan,2,Level,achieves),
     achieves(Goal, Action),
-    my_trace(3,plan,1,achieves,['Action'/Action]),
+    my_trace_rec(3,plan,2,Level,achieves,['Action'/Action]),
 
-    my_trace(2,plan,1,requires),
+    my_trace_rec(2,plan,2,Level,requires),
     requires(Action, CondGoals, Conditions),
-    my_trace(3,plan,1,requires,['CondGoals'/CondGoals, 'Conditions'/Conditions]),
+    my_trace_rec(3,plan,2,Level,requires,['CondGoals'/CondGoals, 'Conditions'/Conditions]),
 
-    plan(InitState, CondGoals, AchievedGoals, LimitPre, PrePlan, State1,NewLevel),
+    plan(InitState, CondGoals, AchievedGoals, LimitPre, PrePlan, State1, NewLevel),
+
+    my_trace_rec(2,plan,2,Level,inst_action),
     inst_action(Action, Conditions, State1, InstAction),
+    my_trace_rec(3,plan,2,Level,inst_action,['InstAction'/InstAction]),
+
+    my_trace_rec(2,plan,2,Level,check_action),
     check_action(InstAction,AchievedGoals),
+    my_trace_rec(3,plan,2,Level,check_action,[]),
+
+    my_trace_rec(2,plan,2,Level,perform_action),
     perform_action(State1, InstAction, State2),
+    my_trace_rec(3,plan,2,Level,perform_action,['State2'/State2]),
+
     LimitPost is Limit-LimitPre - 1 ,
     plan(State2, RestGoals, [Goal|AchievedGoals], LimitPost, PostPlan, FinalState, NewLevel),
     conc(PrePlan, [InstAction | PostPlan], Plan),
-    my_trace_rec(1,plan,4,Level,['Plan'/Plan]).
+    my_trace_rec(1,plan,2,Level,['Plan'/Plan]).
