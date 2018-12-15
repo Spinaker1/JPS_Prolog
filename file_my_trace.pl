@@ -103,20 +103,24 @@ plan(State, Goals, AchievedGoals, Limit, [], State, Level) :-
     my_trace_rec(1,plan,1,Level,['State'/State,'Goals'/Goals,'AchievedGoals'/AchievedGoals,'Limit'/Limit]),
     Limit > 0,
     goals_achieved(Goals, State),
-    my_trace_rec(1,plan,4,Level,['Plan'/[]]).
+    my_trace_rec(4,plan,1,Level,['Plan'/[]]).
 
 plan(InitState, Goals, AchievedGoals, Limit, Plan, FinalState, Level) :-
     my_trace_rec(1,plan,2,Level,['State'/State,'Goals'/Goals,'AchievedGoals'/AchievedGoals,'Limit'/Limit]),
+
     NewLevel is Level + 1 ,
     Limit > 0,
     LimitPre is Limit//2 ,
     choose_goal(Goal, Goals, RestGoals, InitState),
 
-    my_trace(2,achieves,1,['Goal'/Goal]),
+    my_trace(2,plan,1,achieves),
     achieves(Goal, Action),
-    my_trace(3,achieves,1,['Action'/Action]),
+    my_trace(3,plan,1,achieves,['Action'/Action]),
 
+    my_trace(2,plan,1,requires),
     requires(Action, CondGoals, Conditions),
+    my_trace(3,plan,1,requires,['CondGoals'/CondGoals, 'Conditions'/Conditions]),
+
     plan(InitState, CondGoals, AchievedGoals, LimitPre, PrePlan, State1,NewLevel),
     inst_action(Action, Conditions, State1, InstAction),
     check_action(InstAction,AchievedGoals),
