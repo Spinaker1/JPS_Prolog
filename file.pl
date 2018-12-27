@@ -1,3 +1,9 @@
+range(Low, Low, High).
+range(Out,Low,High) :-
+    NewLow is Low+1,
+    NewLow < High,
+    range(Out, NewLow, High).
+
 member1(X,[X|_]).
 member1(X,[_|Rest]) :-
     member1(X,Rest).
@@ -86,12 +92,11 @@ plan(InitState, Goals, Limit, Plan, FinalState) :-
     plan(InitState, Goals, AchievedGoals, Limit, Plan, FinalState).
 
 plan(State, Goals, AchievedGoals, Limit, [], State) :-
-    Limit > 0,
     goals_achieved(Goals, State).
 
 plan(InitState, Goals, AchievedGoals, Limit, Plan, FinalState) :-
     Limit > 0,
-    LimitPre is Limit//2 ,
+    range(LimitPre,0,Limit),
     choose_goal(Goal, Goals, RestGoals, InitState),
     achieves(Goal, Action),
     requires(Action, CondGoals, Conditions),
