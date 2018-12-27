@@ -1,4 +1,4 @@
-range(Low, Low, High).
+range(Low, Low, _).
 range(Out,Low,High) :-
     NewLow is Low+1,
     NewLow < High,
@@ -12,7 +12,7 @@ intersect([], _, []).
 intersect([Elem|RestL], L, [Elem|Result]) :-
 	member1(Elem, L), !,
 	intersect(RestL, L, Result).
-intersect([Elem|RestL], L, Result) :-
+intersect([_|RestL], L, Result) :-
     intersect(RestL, L, Result).
 
 substract1(_,[],[]).
@@ -91,7 +91,7 @@ plan(InitState, Goals, Limit, Plan, FinalState) :-
     intersect(InitState,Goals,AchievedGoals),
     plan(InitState, Goals, AchievedGoals, Limit, Plan, FinalState).
 
-plan(State, Goals, AchievedGoals, Limit, [], State) :-
+plan(State, Goals, _, _, [], State) :-
     goals_achieved(Goals, State).
 
 plan(InitState, Goals, AchievedGoals, Limit, Plan, FinalState) :-
