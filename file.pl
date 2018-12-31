@@ -4,6 +4,11 @@ range(Out,Low,High) :-
     NewLow < High,
     range(Out, NewLow, High).
 
+display_clear_elements([], _).
+display_clear_elements([X|State], move(A,_,_)) :- X = clear(Y), A \= Y, !, write(X), write(', '), display_clear_elements(State, move(A,_,_)).
+display_clear_elements([X|State], move(A,_,_)) :- display_clear_elements(State, move(A,_,_)).
+
+
 member1(X,[X|_]).
 member1(X,[_|Rest]) :-
     member1(X,Rest).
@@ -68,6 +73,14 @@ inst_action(Action, Conditions, State1, InstAction, 0) :-
     change_structures_to_simple_var(Action,InstAction),
     goals_achieved(Conditions,State1).
 
+inst_action(Action, Conditions, State1, InstAction, 1) :-
+    change_structures_to_simple_var(Action,InstAction),
+    goals_achieved(Conditions,State1),
+    InstAction = move(_,_,Z),
+    display_clear_elements(State1, InstAction), nl,
+    read(Z).
+
+
 change_structures_to_simple_var(move(X/on(_,_),Y/on(_,_),Z),move(X,Y,Z)).
 change_structures_to_simple_var(move(X/on(_,_),Y,Z),move(X,Y,Z)).
 change_structures_to_simple_var(move(X,Y/on(_,_),Z),move(X,Y,Z)).
@@ -108,15 +121,5 @@ plan(InitState, Goals, AchievedGoals, Limit, Plan, FinalState, ExecutionMode) :-
     plan(State2, RestGoals, [Goal|AchievedGoals], LimitPost, PostPlan, FinalState, ExecutionMode),
     conc(PrePlan, [InstAction | PostPlan], Plan).
 
-display_clear_elements([], _).
-display_clear_elements([X|State], move(A,_,_)) :- X = clear(Y), A \= Y, !, write(X), write(', '), display_clear_elements(State, move(A,_,_)).
-display_clear_elements([X|State], move(A,_,_)) :- display_clear_elements(State, move(A,_,_)).
-
-inst_action(Action, Conditions, State1, InstAction, 1) :-
-    change_structures_to_simple_var(Action,InstAction),
-    goals_achieved(Conditions,State1),
-    InstAction = move(_,_,Z),
-    display_clear_elements(State1, InstAction), nl,
-    read(Z).
 
 

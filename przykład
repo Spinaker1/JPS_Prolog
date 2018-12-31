@@ -13,3 +13,4 @@ InitState=[on(b1,p1),clear(b1), clear(p2)],Goals=[clear(p1),clear(p2)],plan(Init
 b1
 p1 p2 
 
+clear(b1)clear(p2)clear(p3)  clear(b1)clear(p2)clear(p3)  clear(b2)clear(b1)clear(p2)
