@@ -64,7 +64,7 @@ achieves(clear(Y),move(X/on(X,Y),Y,_)).
 requires(move(X,Y/on(X,Y),Z),[clear(X),clear(Z)],[on(X,Y)]).
 requires(move(X/on(X,Y),Y,Z),[clear(X/on(X,Y))],[diff(Z,X/on(X,Y)), clear(Z)]).
 
-inst_action(Action, Conditions, State1, InstAction) :-
+inst_action(Action, Conditions, State1, InstAction, 0) :-
     change_structures_to_simple_var(Action,InstAction),
     goals_achieved(Conditions,State1).
 
@@ -87,23 +87,36 @@ conc([X|Rest1],L2,[X|Rest2]) :-
 
 %wariant wywołania procedury plan dla użytkownika, w którym nie musi wyznaczyć celów spełnionych AchievedGoals, ponieważ robi to za niego program 
 %wyznaczamy cele, które są już spełnione w stanie początkowym (czyli jest przecięcie zbiorów InitState i Goals)
-plan(InitState, Goals, Limit, Plan, FinalState) :-
+plan(InitState, Goals, Limit, Plan, FinalState, ExecutionMode) :-
     intersect(InitState,Goals,AchievedGoals),
-    plan(InitState, Goals, AchievedGoals, Limit, Plan, FinalState).
+    plan(InitState, Goals, AchievedGoals, Limit, Plan, FinalState, ExecutionMode).
 
-plan(State, Goals, _, _, [], State) :-
+plan(State, Goals, _, _, [], State, _) :-
     goals_achieved(Goals, State).
 
-plan(InitState, Goals, AchievedGoals, Limit, Plan, FinalState) :-
+plan(InitState, Goals, AchievedGoals, Limit, Plan, FinalState, ExecutionMode) :-
     Limit > 0,
     range(LimitPre,0,Limit),
     choose_goal(Goal, Goals, RestGoals, InitState),
     achieves(Goal, Action),
     requires(Action, CondGoals, Conditions),
-    plan(InitState, CondGoals, AchievedGoals, LimitPre, PrePlan, State1),
-    inst_action(Action, Conditions, State1, InstAction),
+    plan(InitState, CondGoals, AchievedGoals, LimitPre, PrePlan, State1, ExecutionMode),
+    inst_action(Action, Conditions, State1, InstAction, ExecutionMode),
     check_action(InstAction,AchievedGoals),
     perform_action(State1, InstAction, State2),
     LimitPost is Limit-LimitPre-1 ,
-    plan(State2, RestGoals, [Goal|AchievedGoals], LimitPost, PostPlan, FinalState),
+    plan(State2, RestGoals, [Goal|AchievedGoals], LimitPost, PostPlan, FinalState, ExecutionMode),
     conc(PrePlan, [InstAction | PostPlan], Plan).
+
+display_clear_elements([], _).
+display_clear_elements([X|State], move(A,_,_)) :- X = clear(Y), A \= Y, !, write(X), write(', '), display_clear_elements(State, move(A,_,_)).
+display_clear_elements([X|State], move(A,_,_)) :- display_clear_elements(State, move(A,_,_)).
+
+inst_action(Action, Conditions, State1, InstAction, 1) :-
+    change_structures_to_simple_var(Action,InstAction),
+    goals_achieved(Conditions,State1),
+    InstAction = move(_,_,Z),
+    display_clear_elements(State1, InstAction), nl,
+    read(Z).
+
+
