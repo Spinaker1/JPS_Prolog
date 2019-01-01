@@ -76,9 +76,11 @@ inst_action(Action, Conditions, State1, InstAction, 0) :-
 inst_action(Action, Conditions, State1, InstAction, 1) :-
     change_structures_to_simple_var(Action,InstAction),
     goals_achieved(Conditions,State1),
-    InstAction = move(_,_,Z),
+    InstAction = move(X,Y,Z),
+    write('move('), write(X), write(','), write(Y), write(',?)'), nl,
     display_clear_elements(State1, InstAction), nl,
-    read(Z).
+    read(Z),
+    write(InstAction), nl, nl.
 
 
 change_structures_to_simple_var(move(X/on(_,_),Y/on(_,_),Z),move(X,Y,Z)).
@@ -87,6 +89,7 @@ change_structures_to_simple_var(move(X,Y/on(_,_),Z),move(X,Y,Z)).
 
 %Sprawdza czy akcja nie zniszczyła już osiągniętego celu. Każda akcja powoduje usunięcie dwóch elementów stanu, więc sprawdzamy czy nie są na liście celów osiągniętych.
 %Można użyć member ponieważ akcja i cele są w pełni ukonkretnione.
+%Procedura uruchamiana jedynie przy trybie wykonania 0,
 check_action(move(X,Y,Z),AchievedGoals) :-
     \+ member1(clear(Z),AchievedGoals),
     \+ member1(on(X,Y),AchievedGoals).
