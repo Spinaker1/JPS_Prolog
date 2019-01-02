@@ -4,10 +4,13 @@ range(Out,Low,High) :-
     NewLow < High,
     range(Out, NewLow, High).
 
-display_clear_elements([], _).
-display_clear_elements([X|State], move(A,_,_)) :- X = clear(Y), A \= Y, !, write(X), write(', '), display_clear_elements(State, move(A,_,_)).
-display_clear_elements([X|State], move(A,_,_)) :- display_clear_elements(State, move(A,_,_)).
-
+find_clear_elements([], _, []).
+find_clear_elements([X|State], move(A,_,_), [X|OutList]) :-
+    X = clear(Y),
+    A \= Y, !,
+    find_clear_elements(State, move(A,_,_), OutList).
+find_clear_elements([X|State], move(A,_,_), OutList) :-
+    find_clear_elements(State, move(A,_,_), OutList).
 
 member1(X,[X|_]).
 member1(X,[_|Rest]) :-
@@ -78,8 +81,8 @@ inst_action(Action, Conditions, State1, InstAction, 1) :-
     goals_achieved(Conditions,State1),
     InstAction = move(X,Y,Z),
     write('move('), write(X), write(','), write(Y), write(',?)'), nl,
-    display_clear_elements(State1, InstAction), nl,
-    read(Z),
+    find_clear_elements(State1, InstAction, OutList), write(OutList), nl,
+    read(Z), nl,
     write(InstAction), nl, nl.
 
 
