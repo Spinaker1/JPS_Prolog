@@ -12,7 +12,6 @@ intersect([Elem|RestL], L, Result) :-
 substract1(_,[],[]).
 substract1(X,[X|Rest],Rest).
 substract1(X,[Y|Rest],[Y|Result]) :-
-    X
     substract1(X,Rest,Result).
 
 substract_all([],OldList,OldList).
