@@ -127,7 +127,8 @@ plan(InitState, Goals, AchievedGoals, Limit, Plan, FinalState, ExecutionMode) :-
     perform_action(State1, InstAction, State2),
     LimitPost is Limit-LimitPre-1 ,
     plan(State2, RestGoals, [Goal|AchievedGoals], LimitPost, PostPlan, FinalState, ExecutionMode),
-    conc(PrePlan, [InstAction | PostPlan], Plan).
+    conc(PrePlan, [InstAction | PostPlan], Plan), !.
 
-
-
+plan(InitState, Goals, AchievedGoals, Limit, Plan, FinalState, ExecutionMode) :-
+    NewLimit is Limit +1,
+    plan(InitState, Goals, AchievedGoals, NewLimit, Plan, FinalState, ExecutionMode).
