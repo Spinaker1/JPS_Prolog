@@ -12,6 +12,7 @@ intersect([Elem|RestL], L, Result) :-
 substract1(_,[],[]).
 substract1(X,[X|Rest],Rest).
 substract1(X,[Y|Rest],[Y|Result]) :-
+    X
     substract1(X,Rest,Result).
 
 substract_all([],OldList,OldList).
@@ -105,7 +106,7 @@ plan(State, Goals, AchievedGoals, Limit, [], State, Level) :-
     goals_achieved(Goals, State),
     my_trace_rec(4,plan,1,Level,['Plan'/[]]).
 
-plan(InitState, Goals, AchievedGoals, Limit, Plan, FinalState, Level) :-
+plan(InitState, Goals, AchievedGoals, Limit, .Plan, FinalState, Level) :-
     my_trace_rec(1,plan,2,Level,['InitState'/InitState,'Goals'/Goals,'AchievedGoals'/AchievedGoals,'Limit'/Limit]),
 
     NewLevel is Level + 1 ,
