@@ -78,15 +78,14 @@ inst_action(Action, Conditions, State1, InstAction, 0) :-
     change_structures_to_simple_var(Action,InstAction),
     goals_achieved(Conditions,State1).
 
-inst_action(Action, Conditions, State1, InstAction, 1) :-
+inst_action(Action, Conditions, State1, move(X,Y,Z), 1) :-
     change_structures_to_simple_var(Action,InstAction),
     goals_achieved(Conditions,State1),
-    InstAction = move(X,Y,Z),
+    InstAction = move(X,Y,_),
     write('move('), write(X), write(','), write(Y), write(',?)'), nl,
     find_clear_elements(State1, InstAction, OutList), write(OutList), nl,
     read(Z), nl,
-    write(InstAction), nl, nl.
-
+    write(move(X,Y,Z)), nl, nl.
 
 change_structures_to_simple_var(move(X/on(_,_),Y/on(_,_),Z),move(X,Y,Z)).
 change_structures_to_simple_var(move(X/on(_,_),Y,Z),move(X,Y,Z)).
