@@ -4,12 +4,12 @@ range(Out,Low,High) :-
     NewLow < High,
     range(Out, NewLow, High).
 
+%Znajduje w liście stanów struktury typu clear(), które spełniają warunek - move(X,Y,Z), diff(Z,X/on(X,Y))
 find_clear_elements([], _, []).
-find_clear_elements([X|State], move(A,_,_), [X|OutList]) :-
-    X = clear(Y),
+find_clear_elements([clear(Y)|State], move(A,_,_), [clear(Y)|OutList]) :-
     A \= Y, !,
     find_clear_elements(State, move(A,_,_), OutList).
-find_clear_elements([X|State], move(A,_,_), OutList) :-
+find_clear_elements([_|State], move(A,_,_), OutList) :-
     find_clear_elements(State, move(A,_,_), OutList).
 
 member1(X,[X|_]).
@@ -109,25 +109,29 @@ conc([X|Rest1],L2,[X|Rest2]) :-
 %wyznaczamy cele, które są już spełnione w stanie początkowym (czyli jest przecięcie zbiorów InitState i Goals)
 plan(InitState, Goals, Limit, Plan, FinalState, ExecutionMode) :-
     intersect(InitState,Goals,AchievedGoals),
-    plan(InitState, Goals, AchievedGoals, Limit, Plan, FinalState, ExecutionMode).
+    plan(InitState, Goals, AchievedGoals, Limit, Plan, FinalState, ExecutionMode), !.
+plan(InitState, Goals, Limit, Plan, FinalState, ExecutionMode) :-
+    NewLimit is Limit + 1,
+    nl, write('Limit zwiększony do '), write(NewLimit), nl,
+    plan(InitState, Goals, NewLimit, Plan, FinalState, ExecutionMode).
 
 plan(State, Goals, _, _, [], State, _) :-
     goals_achieved(Goals, State).
 
 plan(InitState, Goals, AchievedGoals, Limit, Plan, FinalState, ExecutionMode) :-
     Limit > 0,
+    write(Limit),
     range(LimitPre,0,Limit),
     choose_goal(Goal, Goals, RestGoals, InitState),
     achieves(Goal, Action),
     requires(Action, CondGoals, Conditions),
     plan(InitState, CondGoals, AchievedGoals, LimitPre, PrePlan, State1, ExecutionMode),
     inst_action(Action, Conditions, State1, InstAction, ExecutionMode),
-    check_action(InstAction,AchievedGoals),
+    check_action(InstAction,AchievedGoals), !,
     perform_action(State1, InstAction, State2),
     LimitPost is Limit-LimitPre-1 ,
     plan(State2, RestGoals, [Goal|AchievedGoals], LimitPost, PostPlan, FinalState, ExecutionMode),
     conc(PrePlan, [InstAction | PostPlan], Plan).
 
-plan(InitState, Goals, AchievedGoals, Limit, Plan, FinalState, ExecutionMode) :-
-    NewLimit is Limit +1,
-    plan(InitState, Goals, AchievedGoals, NewLimit, Plan, FinalState, ExecutionMode).
+
+
