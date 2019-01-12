@@ -112,7 +112,6 @@ plan(InitState, Goals, Limit, Plan, FinalState, ExecutionMode) :-
     plan(InitState, Goals, AchievedGoals, Limit, Plan, FinalState, ExecutionMode), !.
 plan(InitState, Goals, Limit, Plan, FinalState, ExecutionMode) :-
     NewLimit is Limit + 1,
-    nl, write('Limit zwiększony do '), write(NewLimit), nl,
     plan(InitState, Goals, NewLimit, Plan, FinalState, ExecutionMode).
 
 plan(State, Goals, _, _, [], State, _) :-
