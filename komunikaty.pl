@@ -56,8 +56,8 @@ goal_achieved(diff(Z,X/on(X,Y)), State) :-
     Z \= X.
 
 %jeśli nie ma żadnych celów, to znaczy, że są spełnione
-goals_achieved([], _). 
-%sprawdzamy każdy element listy celów, czy znajduje się też w liście stanu, chcemy uniknąć powtórzeń w liście celów 
+goals_achieved([], _).
+%sprawdzamy każdy element listy celów, czy znajduje się też w liście stanu, chcemy uniknąć powtórzeń w liście celów
 goals_achieved([X|Goals], State) :-
     goals_achieved(Goals, State),
     goal_achieved(X,State),
@@ -68,15 +68,16 @@ choose_goal(Goal, Goals, RestGoals,InitState) :-
     select(Goal,Goals,RestGoals),
     \+goal_achieved(Goal,InitState).
 
-achieves(on(X,Z),move(X,Y/on(X,Y),Z)). 
-achieves(clear(Y),move(X/on(X,Y),Y,_)). 
+achieves(on(X,Z),move(X,Y/on(X,Y),Z)).
+achieves(clear(Y),move(X/on(X,Y),Y,_)).
 
 requires(move(X,Y/on(X,Y),Z),[clear(X),clear(Z)],[on(X,Y)]).
 requires(move(X/on(X,Y),Y,Z),[clear(X/on(X,Y))],[diff(Z,X/on(X,Y)), clear(Z)]).
 
 inst_action(Action, Conditions, State1, InstAction, 0) :-
     change_structures_to_simple_var(Action,InstAction),
-    goals_achieved(Conditions,State1).
+    goals_achieved(Conditions,State1),
+    write('Akcja '), write(Action), write(' ukonkretniona: '), write(InstAction).
 
 inst_action(Action, Conditions, State1, move(X,Y,Z), 1) :-
     change_structures_to_simple_var(Action,InstAction),
@@ -97,6 +98,14 @@ change_structures_to_simple_var(move(X,Y/on(_,_),Z),move(X,Y,Z)).
 check_action(move(X,Y,Z),AchievedGoals) :-
     \+ member1(clear(Z),AchievedGoals),
     \+ member1(on(X,Y),AchievedGoals).
+check_action(move(X,Y,Z),AchievedGoals) :-
+    member1(clear(Z),AchievedGoals),
+    write('Akcja '), write(move(X,Y,Z)), write(' odrzucona, ponieważ niszczy osiągnięty cel: '), write(clear(Z)), nl,
+    1 \= 1.
+check_action(move(X,Y,Z),AchievedGoals) :-
+    member1(on(X,Y),AchievedGoals),
+    write('Akcja '), write(move(X,Y,Z)), write(' odrzucona, ponieważ niszczy osiągnięty cel: '), write(on(X,Y)), nl,
+    1 \= 1.
 
 perform_action(State1,move(X,Y,Z),[clear(Y),on(X,Z) | State2]) :-
     substract_all([clear(Z),on(X,Y)],State1,State2).
@@ -105,30 +114,44 @@ conc([],L2,L2).
 conc([X|Rest1],L2,[X|Rest2]) :-
     conc(Rest1,L2,Rest2).
 
-%wariant wywołania procedury plan dla użytkownika, w którym nie musi wyznaczyć celów spełnionych AchievedGoals, ponieważ robi to za niego program 
+%wariant wywołania procedury plan dla użytkownika, w którym nie musi wyznaczyć celów spełnionych AchievedGoals, ponieważ robi to za niego program
 %wyznaczamy cele, które są już spełnione w stanie początkowym (czyli jest przecięcie zbiorów InitState i Goals)
 plan(InitState, Goals, Limit, Plan, FinalState, ExecutionMode) :-
-    plan(InitState, Goals, [], Limit, Plan, FinalState, ExecutionMode), !.
+    plan(InitState, Goals, [], Limit, Plan, FinalState, ExecutionMode, 0), !.
 plan(InitState, Goals, Limit, Plan, FinalState, ExecutionMode) :-
     NewLimit is Limit + 1,
+    nl, write('Zwiększamy limit do '), write(NewLimit), nl,
     plan(InitState, Goals, NewLimit, Plan, FinalState, ExecutionMode).
 
-plan(State, Goals, _, _, [], State, _) :-
-    goals_achieved(Goals, State).
+plan(State, Goals, _, _, [], State, _, RecurentionLevel) :-
+    goals_achieved(Goals, State),
+    write('Cele '), write(Goals), write(' spełnione w stanie '), write(State), rec(RecurentionLevel).
 
-plan(InitState, Goals, AchievedGoals, Limit, Plan, FinalState, ExecutionMode) :-
+plan(_, _, _, 0, _, _, _, RecurentionLevel) :-
+    write('Cele niespełnione i limit wynosi 0. Nastąpi nawrót. Poziom rekurencji: '), rec(RecurentionLevel), 1 \= 1.
+
+plan(InitState, Goals, AchievedGoals, Limit, Plan, FinalState, ExecutionMode, RecurentionLevel) :-
     Limit > 0,
+    NewRecurentionLevel is RecurentionLevel + 1,
+    write('Procedura plan wykonuje się z limitem '), write(Limit), write(', Stan początkowy: '), write(InitState),
+    write(',Cele: '), write(Goals), write(',Osiągnięte cele: '), write(AchievedGoals), rec(RecurentionLevel),
     range(LimitPre,0,Limit),
     choose_goal(Goal, Goals, RestGoals, InitState),
+    write('Wybrano cel: '), write(Goal), write(', Reszta celów: '), write(RestGoals), rec(RecurentionLevel),
     achieves(Goal, Action),
+    write('Cel '), write(Goal), write(' osiąga akcja '), write(Action), rec(RecurentionLevel),
     requires(Action, CondGoals, Conditions),
-    plan(InitState, CondGoals, AchievedGoals, LimitPre, PrePlan, State1, ExecutionMode),
-    inst_action(Action, Conditions, State1, InstAction, ExecutionMode),
+    write('Akcja '), write(Action), write(' musi spełniać warunki: '), write(Conditions), rec(RecurentionLevel),
+    write('Preplan wywołany z limitem '), write(LimitPre), rec(RecurentionLevel),
+    plan(InitState, CondGoals, AchievedGoals, LimitPre, PrePlan, State1, ExecutionMode, NewRecurentionLevel),
+    inst_action(Action, Conditions, State1, InstAction, ExecutionMode), rec(RecurentionLevel),
     check_action(InstAction,AchievedGoals), !,
     perform_action(State1, InstAction, State2),
-    LimitPost is Limit-LimitPre-1 ,
-    plan(State2, RestGoals, [Goal|AchievedGoals], LimitPost, PostPlan, FinalState, ExecutionMode),
-    conc(PrePlan, [InstAction | PostPlan], Plan).
+    write('Po wykonaniu akcji '), write(Action), write(' osiągnięto stan: '), write(State2), rec(RecurentionLevel),
+    LimitPost is Limit-LimitPre-1,
+    write('Postplan wywołany z limitem '), write(LimitPost), rec(RecurentionLevel),
+    plan(State2, RestGoals, [Goal|AchievedGoals], LimitPost, PostPlan, FinalState, ExecutionMode, NewRecurentionLevel),
+    conc(PrePlan, [InstAction | PostPlan], Plan),
+    write('Nowy plan: '), write(Plan), rec(RecurentionLevel).
 
-
-
+rec(RecLev) :- write(', Poziom rekurencji: '), write(RecLev), nl.
