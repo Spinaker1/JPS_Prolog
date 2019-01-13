@@ -129,7 +129,7 @@ plan(InitState, Goals, AchievedGoals, Limit, Plan, FinalState, ExecutionMode) :-
     requires(Action, CondGoals, Conditions),
     plan(InitState, CondGoals, AchievedGoals, LimitPre, PrePlan, State1, ExecutionMode),
     inst_action(Action, Conditions, State1, InstAction, ExecutionMode),
-    check_action(InstAction,AchievedGoals), !,
+    check_action(InstAction,AchievedGoals),
     perform_action(State1, InstAction, State2),
     LimitPost is Limit-LimitPre-1 ,
     plan(State2, RestGoals, [Goal|AchievedGoals], LimitPost, PostPlan, FinalState, ExecutionMode),

@@ -149,7 +149,7 @@ plan(InitState, Goals, AchievedGoals, Limit, Plan, FinalState, ExecutionMode, Re
     write('Preplan wywołany z limitem '), write(LimitPre), rec(RecurentionLevel),
     plan(InitState, CondGoals, AchievedGoals, LimitPre, PrePlan, State1, ExecutionMode, NewRecurentionLevel),
     inst_action(Action, Conditions, State1, InstAction, ExecutionMode),
-    check_action(InstAction,AchievedGoals), !,
+    check_action(InstAction,AchievedGoals),
     perform_action(State1, InstAction, State2),
     write('Po wykonaniu akcji '), write(InstAction), write(' osiągnięto stan: '), write(State2), rec(RecurentionLevel),
     LimitPost is Limit-LimitPre-1,
