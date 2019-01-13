@@ -4,24 +4,9 @@ range(Out,Low,High) :-
     NewLow < High,
     range(Out, NewLow, High).
 
-%Znajduje w liście stanów struktury typu clear(), które spełniają warunek - move(X,Y,Z), diff(Z,X/on(X,Y))
-find_clear_elements([], _, []).
-find_clear_elements([clear(Y)|State], move(A,_,_), [clear(Y)|OutList]) :-
-    A \= Y, !,
-    find_clear_elements(State, move(A,_,_), OutList).
-find_clear_elements([_|State], move(A,_,_), OutList) :-
-    find_clear_elements(State, move(A,_,_), OutList).
-
 member1(X,[X|_]).
 member1(X,[_|Rest]) :-
     member1(X,Rest).
-
-intersect([], _, []).
-intersect([Elem|RestL], L, [Elem|Result]) :-
-	member1(Elem, L), !,
-	intersect(RestL, L, Result).
-intersect([_|RestL], L, Result) :-
-    intersect(RestL, L, Result).
 
 substract1(_,[],[]).
 substract1(X,[X|Rest],Result) :-
@@ -34,6 +19,27 @@ substract_all([],OldList,OldList).
 substract_all([X|Rest],OldList,NewList) :-
     substract1(X,OldList,Temp),
     substract_all(Rest,Temp,NewList).
+
+%Znajduje w liście stanów struktury typu clear(), które spełniają warunek - move(X,Y,Z), diff(Z,X/on(X,Y))
+find_clear_elements([], _, []).
+find_clear_elements([clear(Y)|State], move(A,_,_), [clear(Y)|OutList]) :-
+    A \= Y, !,
+    find_clear_elements(State, move(A,_,_), OutList).
+find_clear_elements([_|State], move(A,_,_), OutList) :-
+    find_clear_elements(State, move(A,_,_), OutList).
+
+handle_user_input('RETURN', _, _) :-
+    nl, write('Nastąpił nawrót'), nl, !.
+handle_user_input(clear(Z), move(X,Y,_), ClearList) :-
+    member1(clear(Z), ClearList), !,
+    write('Akcja ukonkretniona: '), write(move(X,Y,Z)), nl.
+handle_user_input(_, _, _) :-
+    write('Nieprawidłowe wejście! Program zatrzymany!'),
+    halt.
+
+change_structures_to_simple_var(move(X/on(_,_),Y/on(_,_),Z),move(X,Y,Z), State) :- member1(on(X,Y), State).
+change_structures_to_simple_var(move(X/on(_,_),Y,Z),move(X,Y,Z), State) :- member1(on(X,Y), State).
+change_structures_to_simple_var(move(X,Y/on(_,_),Z),move(X,Y,Z), State) :- member1(on(X,Y), State).
 
 %Dla celów, gdzie X i Y są już ukonkretnione (bez warunków), sprawdzamy czy nie są strukturą (compound)
 goal_achieved(on(X,Y), State) :-
@@ -75,21 +81,20 @@ requires(move(X,Y/on(X,Y),Z),[clear(X),clear(Z)],[on(X,Y)]).
 requires(move(X/on(X,Y),Y,Z),[clear(X/on(X,Y))],[diff(Z,X/on(X,Y)), clear(Z)]).
 
 inst_action(Action, Conditions, State1, InstAction, 0) :-
-    change_structures_to_simple_var(Action,InstAction),
+    change_structures_to_simple_var(Action,InstAction,State1),
     goals_achieved(Conditions,State1).
 
-inst_action(Action, Conditions, State1, move(X,Y,Z), 1) :-
-    change_structures_to_simple_var(Action,InstAction),
-    goals_achieved(Conditions,State1),
-    InstAction = move(X,Y,_),
+inst_action(Action, _, State1, move(X,Y,Z), 1) :-
+    change_structures_to_simple_var(Action,InstAction,State1),
+    InstAction = move(X,Y,Z),
+    nl,nl, write('Wpisz, gdzie chcesz przenieść klocek: '),
     write('move('), write(X), write(','), write(Y), write(',?)'), nl,
     find_clear_elements(State1, InstAction, OutList), write(OutList), nl,
-    read(Z), nl,
-    write(move(X,Y,Z)), nl, nl.
+    read(UserInput),
+    handle_user_input(UserInput, InstAction, OutList),
+    UserInput \= 'RETURN',
+    UserInput = clear(Z).
 
-change_structures_to_simple_var(move(X/on(_,_),Y/on(_,_),Z),move(X,Y,Z)).
-change_structures_to_simple_var(move(X/on(_,_),Y,Z),move(X,Y,Z)).
-change_structures_to_simple_var(move(X,Y/on(_,_),Z),move(X,Y,Z)).
 
 %Sprawdza czy akcja nie zniszczyła już osiągniętego celu. Każda akcja powoduje usunięcie dwóch elementów stanu, więc sprawdzamy czy nie są na liście celów osiągniętych.
 %Można użyć member ponieważ akcja i cele są w pełni ukonkretnione.
